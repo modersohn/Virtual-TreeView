@@ -89,7 +89,7 @@
         </DelphiCompile>
         <DCCReference Include="VirtualTreeTests.pas"/>
         <DCCReference Include="VirtualStringTreeTests.pas"/>
-        <DCCReference Include="VTWorkerThreadIssue1000Tests.pas"/>
+        <DCCReference Include="VTWorkerThreadIssue1001Tests.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

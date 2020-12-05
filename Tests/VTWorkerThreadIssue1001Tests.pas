@@ -28,7 +28,7 @@ type
     procedure TearDown;
 
     /// Test for CheckSynchronize when tree is destroyed
-    /// repeated 50 times because AVs are not realiable
+    /// repeated because AVs are not realiable
     [Test, RepeatTestAttribute(100)]
     procedure TestDestroyWhileWorkerThreadBusy;
   end;
@@ -66,7 +66,7 @@ begin
       try
         fTree.SetChildCount(fTree.RootNode, 10000);
         Assert.AreEqual(fTree.RootNode.ChildCount + 1, fTree.RootNode.TotalCount, 'TotalCount <> ChildCount + 1');
-        //fTree.SortTree(-1, sdAscending, false);
+        fTree.SortTree(-1, sdAscending, false);
       finally
         fTree.EndUpdate;
       end;
@@ -87,5 +87,4 @@ end;
 initialization
   Randomize;
   TDUnitX.RegisterTestFixture(TVTWorkerThreadIssue1001Tests);
-
 end.
