@@ -1,4 +1,4 @@
-﻿unit VTWorkerThreadIssue1000Tests;
+﻿unit VTWorkerThreadIssue1001Tests;
 
 interface
 
@@ -15,7 +15,7 @@ type
   end;
 
   [TestFixture]
-  TVTWorkerThreadIssue1000Tests = class
+  TVTWorkerThreadIssue1001Tests = class
   strict private
     fTree: TTestBaseVirtualTree;
     fForm: TForm;
@@ -39,7 +39,7 @@ uses
   VirtualTrees.WorkerThread,
   SysUtils;
 
-procedure TVTWorkerThreadIssue1000Tests.Setup;
+procedure TVTWorkerThreadIssue1001Tests.Setup;
 begin
   TThread.Synchronize(nil, procedure
     begin
@@ -50,7 +50,7 @@ begin
     end);
 end;
 
-procedure TVTWorkerThreadIssue1000Tests.TearDown;
+procedure TVTWorkerThreadIssue1001Tests.TearDown;
 begin
   TThread.Synchronize(nil, procedure
     begin
@@ -58,7 +58,7 @@ begin
     end);
 end;
 
-procedure TVTWorkerThreadIssue1000Tests.TestDestroyWhileWorkerThreadBusy;
+procedure TVTWorkerThreadIssue1001Tests.TestDestroyWhileWorkerThreadBusy;
 begin
   TThread.Synchronize(nil, procedure
     begin
@@ -75,7 +75,7 @@ begin
     end);
 end;
 
-procedure TVTWorkerThreadIssue1000Tests.TreeCompareNodes(
+procedure TVTWorkerThreadIssue1001Tests.TreeCompareNodes(
   Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode; Column: TColumnIndex;
   var Result: Integer);
 begin
@@ -86,6 +86,6 @@ end;
 
 initialization
   Randomize;
-  TDUnitX.RegisterTestFixture(TVTWorkerThreadIssue1000Tests);
+  TDUnitX.RegisterTestFixture(TVTWorkerThreadIssue1001Tests);
 
 end.
