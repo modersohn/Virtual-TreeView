@@ -19,6 +19,10 @@ type
   strict private
     fTree: TTestBaseVirtualTree;
     fForm: TForm;
+    fItemMeasured: Boolean;
+
+    procedure TreeMeasureItem(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; var NodeHeight: Integer);
   public
     [Setup]
     procedure Setup;
@@ -27,8 +31,12 @@ type
 
     /// Test for CheckSynchronize when tree is destroyed
     /// repeated because AVs are not realiable
-    [Test, RepeatTestAttribute(100)]
+    [Test, RepeatTestAttribute(200)]
     procedure TestDestroyWhileWorkerThreadBusy;
+    [Test, RepeatTestAttribute(200)]
+    procedure TestDestroyWhileWorkerThreadBusyVariableNodeHeight;
+    [RepeatTestAttribute(200)]
+    procedure TestDestroyWhileWorkerThreadBusyVariableNodeHeightExtended;
   end;
 
 implementation
@@ -75,6 +83,73 @@ begin
     end);
 end;
 
+procedure TVTWorkerThreadIssue1001Tests.TestDestroyWhileWorkerThreadBusyVariableNodeHeight;
+begin
+  fTree.OnMeasureItem:= TreeMeasureItem;
+  fTree.TreeOptions.AutoOptions:= fTree.TreeOptions.AutoOptions - [toAutoSort];
+  fTree.TreeOptions.MiscOptions:= fTree.TreeOptions.MiscOptions + [toVariableNodeHeight];
+  fTree.BeginUpdate;
+  try
+    fTree.SetChildCount(fTree.RootNode, CacheThreshold + 1);
+  finally
+    fTree.EndUpdate;
+  end;
+  FreeAndNil(fTree);
+  FreeAndNil(fForm);
+
+  //See if some code which might AV now is still scheduled
+  CheckSynchronize;
+end;
+
+procedure TVTWorkerThreadIssue1001Tests.TestDestroyWhileWorkerThreadBusyVariableNodeHeightExtended;
+var
+  i: Integer;
+begin
+  fTree.OnMeasureItem:= TreeMeasureItem;
+  fTree.TreeOptions.AutoOptions:= fTree.TreeOptions.AutoOptions - [toAutoSort];
+  fTree.TreeOptions.MiscOptions:= fTree.TreeOptions.MiscOptions + [toVariableNodeHeight];
+  fTree.BeginUpdate;
+  try
+    fTree.SetChildCount(fTree.RootNode, CacheThreshold + 1);
+
+    fTree.ReinitNode(nil, True); //invalidate all nodes so EndUpdate will actually measure them again
+  finally
+    fTree.EndUpdate;
+  end;
+  //wait for validation to actually start
+  while (tsValidationNeeded in fTree.TreeStates) do
+  begin
+    Sleep(1);
+    CheckSynchronize;
+  end;
+  Assert.IsTrue(tsValidating in fTree.TreeStates, 'Tree not in tsValidating');
+
+  fItemMeasured:= False;
+  for i:= 1 to 10000 do
+  begin
+    CheckSynchronize;
+    Sleep(1);
+    if fItemMeasured then
+      Break;
+    Assert.IsTrue(tsValidating in fTree.TreeStates, 'Tree should not finish validation before an item was measured');
+  end;
+  Assert.IsTrue(fItemMeasured, 'no MeasureItem event was fired');
+  FreeAndNil(fTree);
+  FreeAndNil(fForm);
+
+  //See if some code which might AV now is still scheduled
+  CheckSynchronize;
+end;
+
+procedure TVTWorkerThreadIssue1001Tests.TreeMeasureItem(
+  Sender: TBaseVirtualTree; TargetCanvas: TCanvas; Node: PVirtualNode;
+  var NodeHeight: Integer);
+begin
+  NodeHeight:= 18 + Random(10);
+  fItemMeasured:= True;
+end;
+
 initialization
+  Randomize;
   TDUnitX.RegisterTestFixture(TVTWorkerThreadIssue1001Tests);
 end.
