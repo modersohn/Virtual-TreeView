@@ -37,6 +37,8 @@ type
     procedure TestDestroyWhileWorkerThreadBusyVariableNodeHeight;
     [RepeatTestAttribute(200)]
     procedure TestDestroyWhileWorkerThreadBusyVariableNodeHeightExtended;
+    [Test, RepeatTestAttribute(200)]
+    procedure TestEndUpdateFromSecondaryThread;
   end;
 
 implementation
@@ -139,6 +141,23 @@ begin
 
   //See if some code which might AV now is still scheduled
   CheckSynchronize;
+end;
+
+procedure TVTWorkerThreadIssue1001Tests.TestEndUpdateFromSecondaryThread;
+begin
+  Assert.AreEqual(MainThreadID, TThread.CurrentThread.ThreadID, 'Test must be run from MainThread');
+
+  fTree.SetChildCount(fTree.RootNode, 10000);
+
+  TThread.CreateAnonymousThread(procedure
+    begin
+      TThread.Synchronize(nil, procedure
+        begin
+          fTree.InterruptValidation;
+        end)
+    end).Start;
+
+  fTree.InterruptValidation;
 end;
 
 procedure TVTWorkerThreadIssue1001Tests.TreeMeasureItem(
